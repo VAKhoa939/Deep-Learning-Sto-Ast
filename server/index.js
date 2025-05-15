@@ -6,6 +6,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { base64ToFloat32Tensor, predict } = require('./image-classifier');
 
 // Import Firebase helper
 const { auth, firestore: db, ref, remove, update, addFolder, deleteFolder } = require('./firebase-admin');
@@ -47,6 +48,8 @@ app.use(helmet({
 }));
 app.disable('x-powered-by');
 
+
+
 // --- AI Routes ---
 app.post('/api/ai', async (req, res) => {
   const { input, task, isImage = false, mimeType = "image/jpeg" } = req.body;
@@ -75,6 +78,24 @@ app.post('/api/chatbot', async (req, res) => {
     res.status(500).json({ error: 'Chatbot failed' });
   }
 });
+
+app.post('/api/image-classifier', async (req, res) => {
+  const { content, mimeType } = req.body;
+  if (!content) return res.status(400).json({ error: 'Image content required' });
+
+  try {
+    const image_tensor = await base64ToFloat32Tensor(content, mimeType);
+    let response = await predict(image_tensor);
+    response = `\n\nThis is a ${response} image.`;
+    res.json({ result: response });
+  } catch (error) {
+    console.error('Image classification error:', error.message);
+    res.status(500).json({ error: 'Image classification failed' });
+  }
+});
+
+
+
 //addFolder function
 app.post('/api/folders', async (req, res) => {
   try {

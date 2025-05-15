@@ -80,4 +80,23 @@ export class FileClass {
       return { success: false, result: "Error processing content with AI." };
     }
   }
+
+  
+  async fetchImageClassifier() {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/image-classifier`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", mode : "cors" },
+        body: JSON.stringify({
+          content: this.content,
+          mimeType: this.mimeType,
+        }),
+      });
+      const data = await response.json();
+      return { success: true, result: data.result || "No result returned." };
+    } catch (error) {
+      console.error("ImageClassifier API error:", error);
+      return { success: false, result: "Error processing content with ImageClassifier." };
+    }
+  }
 }

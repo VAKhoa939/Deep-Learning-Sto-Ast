@@ -87,6 +87,13 @@ export default function File({ file, onDelete, onUpdate }) {
     setLoading(false);
   };
 
+  const fetchImageClassifier = async () => {
+    setLoading(true);
+    const response = await fileObj.fetchImageClassifier();
+    setAiResponse(response.result);
+    setLoading(false);
+  };
+
   const closeModal = () => {
     setShowModal(false);
     setAiResponse("");
@@ -141,11 +148,7 @@ export default function File({ file, onDelete, onUpdate }) {
                     style={{ maxWidth: "100%", maxHeight: "400px" }}
                   />
                   <div className="mt-3 d-flex flex-wrap gap-2">
-                    <Button variant="primary" onClick={() => fetchAIResponse("describe", true)}>
-                      <FontAwesomeIcon icon={faFileAlt} className="me-2" />
-                      Describe Image
-                    </Button>
-                    <Button variant="secondary" onClick={() => fetchAIResponse("objects", true)}>
+                    <Button variant="secondary" onClick={() => fetchImageClassifier()}>
                       <FontAwesomeIcon icon={faSearch} className="me-2" />
                       Identify Objects
                     </Button>
