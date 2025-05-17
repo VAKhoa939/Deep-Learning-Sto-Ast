@@ -7,16 +7,27 @@ const classes = [
   'ship', 'truck'
 ];
 
-async function predict(imageTensor) {
+async function predict(imageTensor, threshold = 0.3) {
   const session = await ort.InferenceSession.create('image_classifier_model.onnx');
   const input = {
     input: new ort.Tensor('float32', imageTensor.data, [1, 3, 32, 32])
   };
   const output = await session.run(input);
-  const scores = output.output.data; // assuming output.output is a tensor with scores
+  const scores = output.output.data;
 
-  const maxIndex = scores.indexOf(Math.max(...scores));
-  return classes[maxIndex];
+  // Apply softmax to get probabilities
+  const expScores = scores.map(Math.exp);
+  const sumExpScores = expScores.reduce((a, b) => a + b, 0);
+  const probs = expScores.map(e => e / sumExpScores);
+
+  const maxProb = Math.max(...probs);
+  const maxIndex = probs.indexOf(maxProb);
+
+  if (maxProb < threshold) {
+    return 'unknown';  // Confidence too low, treat as unknown
+  } else {
+    return classes[maxIndex];  // Return predicted class
+  }
 }
 
 async function base64ToFloat32Tensor(content, mimeType) {
